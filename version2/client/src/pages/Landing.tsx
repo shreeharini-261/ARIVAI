@@ -1,6 +1,193 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Calendar, Brain, Salad, Flower2, BookOpen } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Heart, Calendar, Brain, Salad, Flower2, BookOpen, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+
+function AuthDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerFirstName, setRegisterFirstName] = useState("");
+  const [registerLastName, setRegisterLastName] = useState("");
+  
+  const { login, register } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const result = await login(loginEmail, loginPassword);
+    
+    if (result.success) {
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+      setIsOpen(false);
+    } else {
+      toast({
+        title: "Sign in failed",
+        description: result.error || "Please check your credentials.",
+        variant: "destructive",
+      });
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const result = await register(registerEmail, registerPassword, registerFirstName, registerLastName);
+    
+    if (result.success) {
+      toast({
+        title: "Welcome to ARIVAI!",
+        description: "Your account has been created successfully.",
+      });
+      setIsOpen(false);
+    } else {
+      toast({
+        title: "Registration failed",
+        description: result.error || "Please try again.",
+        variant: "destructive",
+      });
+    }
+    
+    setIsLoading(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="default">Sign In</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center flex items-center justify-center gap-2">
+            <Heart className="w-5 h-5 text-primary" />
+            <span className="font-serif">Welcome to ARIVAI</span>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <Tabs defaultValue="login" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Sign In</TabsTrigger>
+            <TabsTrigger value="register">Sign Up</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="login">
+            <form onSubmit={handleLogin} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-email">Email</Label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <Input
+                  id="login-password"
+                  type="password"
+                  placeholder="Your password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+          </TabsContent>
+          
+          <TabsContent value="register">
+            <form onSubmit={handleRegister} className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="register-firstName">First Name</Label>
+                  <Input
+                    id="register-firstName"
+                    type="text"
+                    placeholder="First name"
+                    value={registerFirstName}
+                    onChange={(e) => setRegisterFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-lastName">Last Name</Label>
+                  <Input
+                    id="register-lastName"
+                    type="text"
+                    placeholder="Last name"
+                    value={registerLastName}
+                    onChange={(e) => setRegisterLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="register-email">Email</Label>
+                <Input
+                  id="register-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="register-password">Password</Label>
+                <Input
+                  id="register-password"
+                  type="password"
+                  placeholder="Create a password"
+                  value={registerPassword}
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function Landing() {
   const features = [
@@ -46,11 +233,7 @@ export default function Landing() {
             </div>
             <span className="font-serif text-xl font-semibold text-foreground">ARIVAI</span>
           </div>
-          <a href="/api/login" data-testid="button-login-header">
-            <Button variant="default">
-              Sign In
-            </Button>
-          </a>
+          <AuthDialog />
         </div>
       </header>
 
@@ -70,12 +253,8 @@ export default function Landing() {
                 understands your unique cycle.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/api/login" data-testid="button-get-started">
-                  <Button size="lg" className="text-lg px-8">
-                    Get Started Free
-                  </Button>
-                </a>
-                <Button size="lg" variant="outline" className="text-lg px-8" data-testid="button-learn-more">
+                <AuthDialog />
+                <Button size="lg" variant="outline" className="text-lg px-8">
                   Learn More
                 </Button>
               </div>
@@ -97,8 +276,7 @@ export default function Landing() {
               {features.map((feature, index) => (
                 <Card 
                   key={index} 
-                  className="bg-card border-card-border hover-elevate transition-all duration-200"
-                  data-testid={`card-feature-${index}`}
+                  className="bg-card border-card-border hover:shadow-lg transition-all duration-200"
                 >
                   <CardContent className="p-6">
                     <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
@@ -178,11 +356,7 @@ export default function Landing() {
             <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
               Join thousands of women who trust ARIVAI for personalized menstrual health guidance
             </p>
-            <a href="/api/login" data-testid="button-signup-cta">
-              <Button size="lg" className="text-lg px-8">
-                Create Free Account
-              </Button>
-            </a>
+            <AuthDialog />
           </div>
         </section>
       </main>

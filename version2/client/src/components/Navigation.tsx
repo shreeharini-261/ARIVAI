@@ -32,7 +32,7 @@ const navItems = [
 ];
 
 export function Navigation() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -105,12 +105,14 @@ export function Navigation() {
                 </DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator />
-              <a href="/api/logout">
-                <DropdownMenuItem className="cursor-pointer text-destructive" data-testid="menu-logout">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </a>
+              <DropdownMenuItem 
+                className="cursor-pointer text-destructive" 
+                data-testid="menu-logout"
+                onClick={() => logout()}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

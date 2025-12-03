@@ -15,7 +15,7 @@ import type { User } from "@shared/schema";
 import { User as UserIcon, Calendar, Save, LogOut } from "lucide-react";
 
 export default function Profile() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -23,8 +23,8 @@ export default function Profile() {
     firstName: "",
     lastName: "",
     dateOfBirth: "",
-    averageCycleLength: 28,
-    averagePeriodLength: 5,
+    avgCycleLength: 28,
+    avgPeriodLength: 5,
   });
 
   useEffect(() => {
@@ -33,8 +33,8 @@ export default function Profile() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         dateOfBirth: user.dateOfBirth || "",
-        averageCycleLength: user.averageCycleLength || 28,
-        averagePeriodLength: user.averagePeriodLength || 5,
+        avgCycleLength: user.avgCycleLength || 28,
+        avgPeriodLength: user.avgPeriodLength || 5,
       });
     }
   }, [user]);
@@ -205,11 +205,11 @@ export default function Profile() {
                       type="number"
                       min="21"
                       max="45"
-                      value={formData.averageCycleLength}
+                      value={formData.avgCycleLength}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          averageCycleLength: parseInt(e.target.value) || 28,
+                          avgCycleLength: parseInt(e.target.value) || 28,
                         })
                       }
                       className="bg-background border-border"
@@ -226,11 +226,11 @@ export default function Profile() {
                       type="number"
                       min="2"
                       max="10"
-                      value={formData.averagePeriodLength}
+                      value={formData.avgPeriodLength}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          averagePeriodLength: parseInt(e.target.value) || 5,
+                          avgPeriodLength: parseInt(e.target.value) || 5,
                         })
                       }
                       className="bg-background border-border"
@@ -255,12 +255,15 @@ export default function Profile() {
                 {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
 
-              <a href="/api/logout">
-                <Button variant="outline" className="gap-2 text-destructive hover:text-destructive" data-testid="button-logout">
-                  <LogOut className="w-4 h-4" />
-                  Log Out
-                </Button>
-              </a>
+              <Button 
+                variant="outline" 
+                className="gap-2 text-destructive hover:text-destructive" 
+                data-testid="button-logout"
+                onClick={() => logout()}
+              >
+                <LogOut className="w-4 h-4" />
+                Log Out
+              </Button>
             </div>
           </form>
         </div>
