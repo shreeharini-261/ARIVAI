@@ -90,6 +90,30 @@ ARIVAI is a comprehensive AI-powered menstrual wellness application that helps u
 - `PATCH /api/user/profile` - Update profile
 
 ## Environment Variables Required
-- `DATABASE_URL` - PostgreSQL connection string
-- `SESSION_SECRET` - Session encryption key
-- `GEMINI_API_KEY` - Google Gemini API key (for AI chat)
+- `DATABASE_URL` - PostgreSQL connection string (✅ configured)
+- `SESSION_SECRET` - Session encryption key (✅ configured)
+- `GEMINI_API_KEY` - Google Gemini API key (optional - app has fallback responses)
+
+## Replit Setup Status (Last Updated: Dec 4, 2025)
+
+### Completed Setup
+- ✅ Node.js 20 and Python 3.11 installed
+- ✅ All npm and Python dependencies installed
+- ✅ PostgreSQL database provisioned and schema pushed
+- ✅ Vite configured for Replit proxy (allowedHosts: true)
+- ✅ Workflow configured: Express on port 5000, Flask on port 5001
+- ✅ Deployment configured for autoscale
+
+### Architecture Notes
+- **Express Server** (port 5000): Serves frontend via Vite, proxies API requests to Flask
+- **Flask Backend** (port 5001): Handles all `/api/*` endpoints
+- **Frontend**: React + TypeScript served via Vite with HMR
+- **Database**: PostgreSQL via Drizzle ORM
+
+### Optional Configuration
+- Add `GEMINI_API_KEY` secret for full AI chat functionality (currently uses fallback responses)
+
+### Development
+- Run: `npm run dev` (starts both Express and Flask)
+- Build: `npm run build`
+- Deploy: Already configured for autoscale deployment
