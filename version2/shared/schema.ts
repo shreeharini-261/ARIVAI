@@ -122,12 +122,68 @@ export const favorites = pgTable("favorites", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User onboarding profile - stores questionnaire answers
+export const userOnboarding = pgTable("user_onboarding", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  
+  // Q1: First day of last menstrual period
+  lastPeriodDate: date("last_period_date"),
+  
+  // Q2: Typical cycle length
+  typicalCycleLength: varchar("typical_cycle_length"), // '21-25', '26-30', '31-35', '36-40', '>40', 'irregular', 'unknown'
+  
+  // Q3: Period duration
+  periodDuration: varchar("period_duration"), // '2-4', '5-7', '8+', 'irregular'
+  
+  // Q4: Cycle variability
+  cycleVariability: varchar("cycle_variability"), // 'rarely', 'sometimes', 'often', 'always_irregular'
+  
+  // Q5: Health conditions (stored as JSON array)
+  healthConditions: jsonb("health_conditions").$type<string[]>(), // ['pcos', 'hormonal_imbalance', 'pregnant_ttc', 'contraceptives', 'menopause', 'none']
+  
+  // Q6: Fertility tracking methods (stored as JSON array)
+  fertilityTracking: jsonb("fertility_tracking").$type<string[]>(), // ['bbt', 'cervical_mucus', 'ovulation_kit', 'none']
+  
+  // Q7: Track symptoms preference
+  trackSymptoms: varchar("track_symptoms"), // 'yes', 'no', 'maybe'
+  
+  // Q8: Dynamic predictions preference
+  dynamicPredictions: varchar("dynamic_predictions"), // 'yes', 'no', 'not_sure'
+  
+  // Q9: Lifestyle factors (optional)
+  stressLevel: varchar("stress_level"), // 'low', 'medium', 'high'
+  sleepPattern: varchar("sleep_pattern"), // 'regular', 'irregular'
+  healthNotes: text("health_notes"),
+  
+  // Profile mode based on conditions
+  profileMode: varchar("profile_mode").default('regular'), // 'regular', 'irregular', 'ttc', 'menopause'
+  
+  // Calculated fields
+  isIrregular: boolean("is_irregular").default(false),
+  showBufferDays: boolean("show_buffer_days").default(true),
+  
+  // Onboarding status
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   cycles: many(cycles),
   symptoms: many(symptoms),
   chatHistory: many(chatHistory),
   favorites: many(favorites),
+  onboarding: one(userOnboarding),
+}));
+
+export const userOnboardingRelations = relations(userOnboarding, ({ one }) => ({
+  user: one(users, {
+    fields: [userOnboarding.userId],
+    references: [users.id],
+  }),
 }));
 
 export const cyclesRelations = relations(cycles, ({ one, many }) => ({
@@ -205,6 +261,13 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
   createdAt: true,
 });
 
+export const insertUserOnboardingSchema = createInsertSchema(userOnboarding).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -222,6 +285,8 @@ export type InsertEducationalContent = z.infer<typeof insertEducationalContentSc
 export type EducationalContent = typeof educationalContent.$inferSelect;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect;
+export type InsertUserOnboarding = z.infer<typeof insertUserOnboardingSchema>;
+export type UserOnboarding = typeof userOnboarding.$inferSelect;
 
 // Menstrual phase type
 export type MenstrualPhase = 'menstrual' | 'follicular' | 'ovulation' | 'luteal';
