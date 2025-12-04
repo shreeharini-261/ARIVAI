@@ -113,6 +113,29 @@ class Favorite(db.Model):
     item_id = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class UserOnboarding(db.Model):
+    __tablename__ = 'user_onboarding'
+    id = db.Column(db.String(255), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
+    last_period_date = db.Column(db.Date)
+    typical_cycle_length = db.Column(db.String(50))
+    period_duration = db.Column(db.String(50))
+    cycle_variability = db.Column(db.String(50))
+    health_conditions = db.Column(db.JSON)
+    fertility_tracking = db.Column(db.JSON)
+    track_symptoms = db.Column(db.String(50))
+    dynamic_predictions = db.Column(db.String(50))
+    stress_level = db.Column(db.String(50))
+    sleep_pattern = db.Column(db.String(50))
+    health_notes = db.Column(db.Text)
+    profile_mode = db.Column(db.String(50), default='regular')
+    is_irregular = db.Column(db.Boolean, default=False)
+    show_buffer_days = db.Column(db.Boolean, default=True)
+    is_completed = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 def calculate_cycle_day(last_period_start: date) -> int:
     today = date.today()
@@ -979,6 +1002,150 @@ def get_insights():
         return jsonify({"error": "User not found"}), 404
     
     return jsonify(insights)
+
+
+@app.route('/api/onboarding', methods=['GET'])
+@jwt_required()
+def get_onboarding():
+    user_id = int(get_jwt_identity())
+    onboarding = UserOnboarding.query.filter_by(user_id=user_id).first()
+    
+    if not onboarding:
+        return jsonify({"isCompleted": False})
+    
+    return jsonify({
+        "id": onboarding.id,
+        "userId": onboarding.user_id,
+        "lastPeriodDate": onboarding.last_period_date.isoformat() if onboarding.last_period_date else None,
+        "typicalCycleLength": onboarding.typical_cycle_length,
+        "periodDuration": onboarding.period_duration,
+        "cycleVariability": onboarding.cycle_variability,
+        "healthConditions": onboarding.health_conditions or [],
+        "fertilityTracking": onboarding.fertility_tracking or [],
+        "trackSymptoms": onboarding.track_symptoms,
+        "dynamicPredictions": onboarding.dynamic_predictions,
+        "stressLevel": onboarding.stress_level,
+        "sleepPattern": onboarding.sleep_pattern,
+        "healthNotes": onboarding.health_notes,
+        "profileMode": onboarding.profile_mode,
+        "isIrregular": onboarding.is_irregular,
+        "showBufferDays": onboarding.show_buffer_days,
+        "isCompleted": onboarding.is_completed,
+        "completedAt": onboarding.completed_at.isoformat() if onboarding.completed_at else None
+    })
+
+
+@app.route('/api/onboarding', methods=['POST'])
+@jwt_required()
+def save_onboarding():
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    onboarding = UserOnboarding.query.filter_by(user_id=user_id).first()
+    
+    health_conditions = data.get('healthConditions') or []
+    typical_cycle = data.get('typicalCycleLength', '')
+    cycle_variability = data.get('cycleVariability', '')
+    
+    is_irregular = (
+        cycle_variability in ['often', 'always_irregular'] or
+        typical_cycle in ['irregular', '>40'] or
+        'pcos' in health_conditions
+    )
+    
+    profile_mode = 'regular'
+    if 'pregnant_ttc' in health_conditions:
+        profile_mode = 'ttc'
+    elif 'menopause' in health_conditions:
+        profile_mode = 'menopause'
+    elif is_irregular:
+        profile_mode = 'irregular'
+    
+    dynamic_pref = data.get('dynamicPredictions', 'yes')
+    show_buffer = dynamic_pref != 'no'
+    
+    import uuid
+    
+    if not onboarding:
+        onboarding = UserOnboarding(
+            id=str(uuid.uuid4()),
+            user_id=user_id
+        )
+        db.session.add(onboarding)
+    
+    last_period = data.get('lastPeriodDate')
+    if last_period:
+        try:
+            onboarding.last_period_date = datetime.fromisoformat(last_period).date()
+        except (ValueError, TypeError):
+            onboarding.last_period_date = None
+    
+    onboarding.typical_cycle_length = typical_cycle
+    onboarding.period_duration = data.get('periodDuration', '')
+    onboarding.cycle_variability = cycle_variability
+    onboarding.health_conditions = health_conditions
+    onboarding.fertility_tracking = data.get('fertilityTracking') or []
+    onboarding.track_symptoms = data.get('trackSymptoms', '')
+    onboarding.dynamic_predictions = dynamic_pref
+    onboarding.stress_level = data.get('stressLevel', '')
+    onboarding.sleep_pattern = data.get('sleepPattern', '')
+    onboarding.health_notes = data.get('healthNotes', '')
+    onboarding.profile_mode = profile_mode
+    onboarding.is_irregular = is_irregular
+    onboarding.show_buffer_days = show_buffer
+    onboarding.is_completed = True
+    onboarding.completed_at = datetime.utcnow()
+    onboarding.updated_at = datetime.utcnow()
+    
+    cycle_length_map = {
+        '21-25': 23,
+        '26-30': 28,
+        '31-35': 33,
+        '36-40': 38,
+        '>40': 42,
+        'irregular': 28,
+        'unknown': 28
+    }
+    
+    period_length_map = {
+        '2-4': 3,
+        '5-7': 5,
+        '8+': 8,
+        'irregular': 5
+    }
+    
+    user = User.query.get(user_id)
+    if user:
+        user.avg_cycle_length = cycle_length_map.get(typical_cycle, 28)
+        user.avg_period_length = period_length_map.get(data.get('periodDuration', ''), 5)
+        
+        if last_period:
+            try:
+                period_date = datetime.fromisoformat(last_period).date()
+                existing_cycle = Cycle.query.filter_by(user_id=user_id).order_by(Cycle.start_date.desc()).first()
+                if not existing_cycle or existing_cycle.start_date != period_date:
+                    new_cycle = Cycle(
+                        user_id=user_id,
+                        start_date=period_date,
+                        cycle_length=user.avg_cycle_length,
+                        period_length=user.avg_period_length
+                    )
+                    db.session.add(new_cycle)
+            except (ValueError, TypeError):
+                pass
+    
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Onboarding completed successfully",
+        "isCompleted": True,
+        "profileMode": profile_mode,
+        "isIrregular": is_irregular,
+        "showBufferDays": show_buffer
+    }), 201
 
 @app.route('/api/pregnancy/calculate', methods=['POST'])
 @jwt_required()

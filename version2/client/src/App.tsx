@@ -1,6 +1,6 @@
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,11 +12,21 @@ import Meditation from "@/pages/Meditation";
 import Education from "@/pages/Education";
 import Chat from "@/pages/Chat";
 import Profile from "@/pages/Profile";
+import Onboarding from "@/pages/Onboarding";
+
+interface OnboardingData {
+  isCompleted: boolean;
+}
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading) {
+  const { data: onboardingData, isLoading: onboardingLoading } = useQuery<OnboardingData>({
+    queryKey: ["/api/onboarding"],
+    enabled: isAuthenticated,
+  });
+
+  if (isLoading || (isAuthenticated && onboardingLoading)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -36,6 +46,10 @@ function Router() {
         <Route component={Landing} />
       </Switch>
     );
+  }
+
+  if (!onboardingData?.isCompleted) {
+    return <Onboarding />;
   }
 
   return (

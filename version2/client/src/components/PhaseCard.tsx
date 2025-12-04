@@ -37,7 +37,7 @@ export function PhaseCard({ phase, currentDay, cycleLength, daysUntilNextPeriod,
         <div className="flex items-start justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl ${getPhaseColor(phase)} flex items-center justify-center`}>
-              <PhaseIcon className="w-6 h-6 text-white" />
+              <PhaseIcon className="w-6 h-6 text-[#4A3C3B]" />
             </div>
             <div>
               <CardTitle className="font-serif text-xl text-foreground">

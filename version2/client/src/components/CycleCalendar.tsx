@@ -53,10 +53,10 @@ export function CycleCalendar({ lastPeriodStart, cycleLength = 28, onDateClick }
   const getPhaseIndicatorClass = (phase: MenstrualPhase | null): string => {
     if (!phase) return "";
     const classes = {
-      menstrual: "bg-[#8B4B5B]",
-      follicular: "bg-[#7A6A63]",
-      ovulation: "bg-[#6D4D4F]",
-      luteal: "bg-[#5A4A44]",
+      menstrual: "bg-[#E8B4BC]",
+      follicular: "bg-[#D4C4B0]",
+      ovulation: "bg-[#C9A9A6]",
+      luteal: "bg-[#BFA89E]",
     };
     return classes[phase];
   };
@@ -139,19 +139,19 @@ export function CycleCalendar({ lastPeriodStart, cycleLength = 28, onDateClick }
         <div className="mt-4 pt-4 border-t border-border">
           <div className="flex flex-wrap gap-4 justify-center text-xs">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#8B4B5B]" />
+              <div className="w-3 h-3 rounded-full bg-[#E8B4BC]" />
               <span className="text-muted-foreground">Menstrual</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#7A6A63]" />
+              <div className="w-3 h-3 rounded-full bg-[#D4C4B0]" />
               <span className="text-muted-foreground">Follicular</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#6D4D4F]" />
+              <div className="w-3 h-3 rounded-full bg-[#C9A9A6]" />
               <span className="text-muted-foreground">Ovulation</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#5A4A44]" />
+              <div className="w-3 h-3 rounded-full bg-[#BFA89E]" />
               <span className="text-muted-foreground">Luteal</span>
             </div>
           </div>

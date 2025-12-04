@@ -115,20 +115,20 @@ export function calculateCycleInfo(
 
 export function getPhaseColor(phase: MenstrualPhase): string {
   const colors = {
-    menstrual: 'bg-[#8B4B5B]', // Rich Merlot
-    follicular: 'bg-[#7A6A63]', // Warm Truffle
-    ovulation: 'bg-[#6D4D4F]', // Cabernet Stone
-    luteal: 'bg-[#5A4A44]', // Darker Warm Truffle
+    menstrual: 'bg-[#E8B4BC]', // Soft Rose Latte
+    follicular: 'bg-[#D4C4B0]', // Warm Beige Latte
+    ovulation: 'bg-[#C9A9A6]', // Dusty Rose Latte
+    luteal: 'bg-[#BFA89E]', // Mocha Latte
   };
   return colors[phase];
 }
 
 export function getPhaseBorderColor(phase: MenstrualPhase): string {
   const colors = {
-    menstrual: 'border-[#8B4B5B]',
-    follicular: 'border-[#7A6A63]',
-    ovulation: 'border-[#6D4D4F]',
-    luteal: 'border-[#5A4A44]',
+    menstrual: 'border-[#E8B4BC]',
+    follicular: 'border-[#D4C4B0]',
+    ovulation: 'border-[#C9A9A6]',
+    luteal: 'border-[#BFA89E]',
   };
   return colors[phase];
 }
