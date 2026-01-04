@@ -37,10 +37,6 @@ externalPort = 80
 localPort = 5001
 externalPort = 3000
 
-[[ports]]
-localPort = 40543
-externalPort = 3001
-
 [deployment]
 deploymentTarget = "autoscale"
 run = ["npm", "start"]
@@ -49,4 +45,4 @@ build = ["npm", "run", "build"]
 [userenv]
 
 [userenv.shared]
-DATABASE_PUBLIC_URL = "postgresql://postgres:iTbaaxhLoQsQPMAdHJqaeXAoxKHAJPDH@ballast.proxy.rlwy.net:43153/railway"
+DATABASE_PUBLIC_URL = "postgresql://postgres:tWWicSbXdpeBpCsRDFkOUxEIMBXgjvOM@postgres.railway.internal:5432/railway"
